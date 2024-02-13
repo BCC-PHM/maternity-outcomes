@@ -5,6 +5,7 @@
 .httr-oauth
 .DS_Store
 .quarto
+desktop.ini
 
 # Exclude the following directories 
 /data/
@@ -29,3 +30,4 @@
 
 # Exlude tex files
 *.tex
+
