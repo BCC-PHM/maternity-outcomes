@@ -614,7 +614,17 @@ library(forestplot)
 
 fplot <- function(model_tib, 
                   title = "",
-                  savename = "forest.pdf") {
+                  part = 1) {
+  if (part == 1) {
+    # keep all cols
+    select_cols = c("**Characteristic**", "Odds Label", "**p-value**" )
+  } else if (part == 2) {
+    # remove characteristic column
+    select_cols = c("Odds Label", "**p-value**" )
+  }
+  
+  
+  
   # model_tib = tibble of the regression table
   model_tib <- tidyr::separate(model_tib, col = `**95% CI**`, into = c("lowerCI", "upperCI"), sep = ",")
   model_tib <- model_tib %>%
@@ -644,14 +654,14 @@ fplot <- function(model_tib,
       is.na(`upperCI`) ~ 1,
       TRUE ~ as.numeric(`upperCI`)
     )
-  )
-
+  ) 
+  
   # Prepare forest plot
   new_fp <- model_tib %>% 
-    select(c("**Characteristic**", "Odds Label", "**p-value**" )) |> 
+    select(select_cols) |> 
     forestplot(
     clip = c(-1, 6),
-    graph.pos=2,
+    graph.pos= 3 - part,
     mean= model_tib["Odds Ratio"], 
     zero=1,
     title=title,
@@ -671,7 +681,9 @@ fplot <- function(model_tib,
                 ticks=gpar(cex=0.8),
                 xlab = gpar(cex=0.9),
                 title=gpar(cex=1)),
-    ) |>
+    ) 
+  if (part == 1) {
+      new_fp <- new_fp |>
     fp_add_header(
       `**Characteristic**` = c(""),
       `Odds Label` = c("Odds Ratio"),
@@ -680,6 +692,17 @@ fplot <- function(model_tib,
     fp_set_style(
       txt_gp = fpTxtGp(label = gpar(fontfamily = "serif")),
       )
+  } else if (part == 2) {
+    new_fp <- new_fp |>
+    fp_add_header(
+      `Odds Label` = c("Odds Ratio"),
+      `**p-value**` = c("P Value")
+      ) |>
+    fp_set_style(
+      txt_gp = fpTxtGp(label = gpar(fontfamily = "serif")),
+      )
+  }
+
   
   return(new_fp)
 }
@@ -690,45 +713,46 @@ fplot <- function(model_tib,
 
 ```{r combine_forest_large}
 
-lbw_fp <- fplot(lbw_exp, title = "Low Birth Weight")
-prem_fp <- fplot(prem_exp, title = "Premature")
+lbw_fp <- fplot(lbw_exp, title = "Low Birth Weight", part = 1)
+prem_fp <- fplot(prem_exp, title = "Premature", part = 2)
 
 p1 <- ggplotify::grid2grob(print(lbw_fp)) 
 p2 <- ggplotify::grid2grob(print(prem_fp))
 both_big <- cowplot::plot_grid(
   p1,
-  NULL,
+  NA,
   p2,
   ncol = 3,
-  rel_widths = c(1, 0.1, 1)
+  rel_widths = c(1, -0.3, 1)
 )
 both_big
 
 
 ggplot2::ggsave(both_big, 
-                filename = "../../../outputs/figures/reg_lbw_prem.pdf", 
+                filename = "../../outputs/figures/reg_lbw_prem.pdf", 
                 width = 12,
                 height = 14)
 ```
 
 ```{r combine_forest_small}
 
-sb_fp <- fplot(sb_exp, title = "Stillbirth")
-nd_fp <- fplot(nd_exp, title = "Neonatal Death")
+sb_fp <- fplot(sb_exp, title = "Stillbirth", part = 1)
+nd_fp <- fplot(nd_exp, title = "Neonatal Death", part = 2)
 
 p1 <- ggplotify::grid2grob(print(sb_fp))
 p2 <- ggplotify::grid2grob(print(nd_fp))
+
 both_smalls <- cowplot::plot_grid(
   p1,
   NULL,
   p2,
   ncol = 3,
-  rel_widths = c(1, 0.1, 1)
+  rel_widths = c(1, -0.3, 1)
 )
 both_smalls
 
 ggplot2::ggsave(both_smalls, 
-                filename = "../../../outputs/figures/reg_sb_nd.pdf", 
+                filename = "../../outputs/figures/reg_sb_nd.pdf", 
                 width = 12,
                 height = 7)
 ```
