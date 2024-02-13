@@ -1,0 +1,734 @@
+---
+title: "BadgerNet Analysis"
+output: 
+  pdf_document:
+    toc: true
+    number_sections: true
+    
+knit: (function(inputFile, encoding) {
+      out_dir <- "../../../outputs/reports";
+      rmarkdown::render(inputFile,
+                        encoding=encoding,
+                        output_dir=file.path(dirname(inputFile), out_dir))})
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+imp_thresh = 3
+
+library(writexl)
+library(dplyr)
+library(openxlsx)
+library(stringr)
+library(ggplot2)
+library(gtsummary)
+
+source("~/Main work/MiscCode/r-regression-tools/r-regression-tools.R")
+setwd("~/Main work/Maternity outcomes/phm-maternity/R/statistical_analysis/BadgerNet")
+
+# Load data
+badger_load <- load_with_ref(
+  "../../../data/BadgerNet/BadgerNet-processed.parquet",
+  seperate_ref_sheet = "../../../data/BadgerNet/BadgerNet-RefGroups.xlsx",
+  ref_sheet = "reference",
+  add_colon = FALSE,
+  return_ref = TRUE
+)
+
+badger <- badger_load[[1]] %>% 
+  mutate(
+    "Social Services" = SocialServicesInvolvement,
+    "LD" = LearningDisabilities,
+    "Folic Acid Taken" = FolicAcidTakenDuringPregnancy,
+    "Consanguineous Union" = Consanguineous_Relationship,
+    "Financial/Housing Issues" = as.factor(case_when(
+      HousingIssues =="Yes" ~ "Yes",
+      FinancialIssues =="Yes" ~ "Yes",
+      TRUE ~ "No",
+    )),
+    "English Difficulties" = as.factor(case_when(
+      DiffUndEnglish == "Yes" ~ "Yes",
+      InterpreterRequired == "Yes" ~ "Yes",
+      TRUE ~ "NO"
+    )),
+    "Age Group" = as.factor(case_when(
+      Age < 20 ~ "Less than 20",
+      Age < 30 ~ "20-29",
+      Age < 40 ~ "30-39",
+      Age >= 40 ~ "40+",
+      TRUE ~ "Unknown"
+    ))
+    ) 
+
+badger$`Age Group` = factor(badger$`Age Group` , levels=c( "Less than 20", "20-29", "30-39", "40+"))
+badger$`Age Group` <- relevel(factor(badger$`Age Group`), ref = "20-29")
+
+# Change reference names for plotting purposes
+ref <- badger_load[[2]] 
+levels(ref$Variable)[match("SocialServicesInvolvement",levels(ref$Variable))] <- "Social Services"
+levels(ref$Variable)[match("LearningDisabilities",levels(ref$Variable))] <- "LD"
+levels(ref$Variable)[match("FolicAcidTakenDuringPregnancy",levels(ref$Variable))] <- "Folic Acid Taken"
+levels(ref$Variable)[match("Consanguineous_Relationship",levels(ref$Variable))] <- "Consanguineous Union"
+levels(ref$Variable)[match("Consanguineous_Relationship",levels(ref$Variable))] <- "Consanguineous Union"
+
+
+
+#"`NumberOfBabies:`", 
+all_variables = c("NumberOfBabies","Age Group",
+"AlcoholAbuse","substanceAbuse","Social Services",
+"DomesticAbuse","LD","English Difficulties",
+"Unsupported","MentalHealth","Homeless","HousingIssues",
+"FinancialIssues","sensoryAndPhysicalDis","Citizenship",
+"BMI>35","IMD Quintile","Mother Ethnicity",
+"SmokingAtDelivery","Gestational_Diabetes",
+"Consanguineous Union","Folic Acid Taken", "FGM", 
+"Late booking")
+
+# limit ref to relevant variables
+ref <- ref %>%
+  filter(Variable %in% all_variables)
+
+date1 = min(badger$`MthYr`)
+date2 = max(badger$`MthYr`)
+time_diff = as.numeric(difftime(max(badger$`MthYr`), min(badger$`MthYr`)))
+
+```
+
+# BadgerNet
+
+The BadgerNet dataset comes from the Birmingham Local Maternity and Neonatal System (LMNS). This dataset contains `r nrow(badger)` unique births from `r date1` to `r date2` with a total timespan of `r time_diff` days. 
+
+
+## Reference Group
+
+The risk ratios for each of the regressions calculated below are given relative 
+to the following reference group. 
+
+```{r comment='', echo=FALSE, results='asis'}
+
+ knitr::kable(ref, caption = "Reference group for logistic regression.")
+```
+
+
+## Variable Corrlation Matrix
+
+```{r calc_corr, include=FALSE}
+badger2 <- badger %>%
+  mutate(
+    Unsupported = case_when(
+      Unsupported == "Yes" ~ 1,
+      TRUE ~ 0
+    ),
+    `Substance Abuse` = case_when(
+      `substanceAbuse` == "Yes" ~ 1,
+      TRUE ~ 0
+    ),
+   `Social Services` = case_when(
+     `Social Services` == "Yes" ~ 1,
+     TRUE ~ 0
+   ),
+    `Smoking At Delivery` = case_when(
+     `SmokingAtDelivery` == "Yes" ~ 1,
+     TRUE ~ 0
+     ),
+   `Sensory/Physical Disability` = case_when(
+     sensoryAndPhysicalDis == "Yes" ~ 1,
+     TRUE ~ 0
+   ),
+   Twins = case_when(
+     NumberOfBabies == 2 ~ 1,
+     TRUE ~ 0
+   ),
+    `Mental Health` = case_when(
+     `MentalHealth` == "Yes" ~ 1,
+     TRUE ~ 0
+   ),
+   `Learning Disability` = case_when(
+     `LD` == "Yes" ~ 1,
+     TRUE ~ 0
+   ),
+   `Late booking` = case_when(
+     `Late booking` == "Yes" ~ 1,
+     TRUE ~ 0
+   ),
+   `English Difficulties` = case_when(
+     `English Difficulties` == "Yes" ~ 1,
+     TRUE ~ 0
+   ),
+  `Deprived Area` = case_when(
+    as.numeric(`IMD Quintile`) %in% c("1", "2") ~ 1,
+    TRUE ~ 0),
+  `Housing Issues` = case_when(
+     `HousingIssues` == "Yes" ~ 1,
+     TRUE ~ 0
+   ),
+  `Gestational Diabetes` = case_when(
+     `Gestational_Diabetes` == "Yes" ~ 1,
+     TRUE ~ 0
+   ),
+  `Folic Acid Taken` = case_when(
+     `Folic Acid Taken` == "Yes" ~ 1,
+     TRUE ~ 0
+   ),
+  `Financial Issues` = case_when(
+     `FinancialIssues` == "Yes" ~ 1,
+     TRUE ~ 0
+   ),
+   FGM = case_when(
+     `FGM` != "Yes" ~ 1,
+     TRUE ~ 0),
+   `Global Majority Ethnicity` = case_when(
+     `Ethnicity Group` != "White" ~ 1,
+     TRUE ~ 0
+   ),
+  `Domestic Abuse` = case_when(
+     `DomesticAbuse` == "Yes" ~ 1,
+     TRUE ~ 0
+   ),
+  
+  `Consanguineous Union` = case_when(
+     `Consanguineous Union` == "Yes" ~ 1,
+     TRUE ~ 0
+   ),
+  
+  Citizenship = case_when(
+     `Citizenship` == "Yes" ~ 1,
+     TRUE ~ 0
+   ),
+  
+  `BMI>35` = case_when(
+     `BMI>35` == "Yes" ~ 1,
+     TRUE ~ 0
+     ),
+
+   `Alcohol Abuse` = case_when(
+     `AlcoholAbuse` == "Yes" ~ 1,
+     TRUE ~ 0
+   ),
+
+  `Age < 20` = case_when(
+     Agelessthan20 == "Yes" ~ 1,
+     TRUE ~ 0
+   )
+   ) %>%
+  select(c(Unsupported, `Substance Abuse`, `Social Services`, `Smoking At Delivery`, `Sensory/Physical Disability`, Twins, `Mental Health`, `Learning Disability`, `Late booking`, `Deprived Area`, `Housing Issues`, `Gestational Diabetes`, `Folic Acid Taken`, `Financial Issues`, FGM, `Global Majority Ethnicity`, `Domestic Abuse`, `English Difficulties`, `Consanguineous Union`, Citizenship, `BMI>35`, `Alcohol Abuse`, `Age < 20`
+           )) %>%
+  tidyr::drop_na()
+```
+
+The following is a correlation matrix for our primary variables.
+
+```{r corr_mat}
+pdf(file = "../../../outputs/figures/correlation_2.pdf")
+par(family="serif")
+corrplot::corrplot(cor(badger2),
+         method="square", 
+         diag = FALSE, 
+         addgrid.col = TRUE,
+         type = 'lower',
+         tl.col="black")
+dev.off()
+```
+
+```{r Fix Variable Names}
+badger <- badger %>%
+  mutate(
+    Twins = case_when(
+      NumberOfBabies == 2 ~ "Yes",
+      TRUE ~ "No"
+      ),
+    `Domestic Abuse` = DomesticAbuse,
+    `Mental Health Issue(s)` = MentalHealth,
+    `Financial Issue(s)` = FinancialIssues,
+    `Housing Issue(s)` = HousingIssues,
+    `Sensory/Physical Disability` = sensoryAndPhysicalDis,
+    `Alcohol Abuse` = AlcoholAbuse,
+    `Substance Abuse` = substanceAbuse,
+    `Smoking at Delivery` = SmokingAtDelivery,
+    `Gestational Diabetes` = Gestational_Diabetes
+    )
+
+badger$Twins <- relevel(factor(badger$Twins), ref = "No")
+
+all_variables = c("Twins","Age Group",
+"Alcohol Abuse","Substance Abuse","Social Services",
+"Domestic Abuse","LD","English Difficulties",
+"Unsupported","Mental Health Issue(s)","Homeless","Housing Issue(s)",
+"Financial Issue(s)","Sensory/Physical Disability","Citizenship",
+"BMI>35","IMD Quintile","Mother Ethnicity",
+"Smoking at Delivery","Gestational Diabetes",
+"Consanguineous Union","Folic Acid Taken", "FGM", 
+"Late booking")
+
+```
+
+
+# Basic regression
+
+First we perform a basic regression with all variables of interest.
+
+## Low-birth weight
+```{r basic_reg_lbw, echo=FALSE}
+# build formula
+lbw_formula <- write_formula("`LowBirthWeight`", all_variables, quote_wrap = TRUE)
+print(lbw_formula)
+
+# run logistic regression
+model_lbw <- glm(lbw_formula, family = binomial, data=badger)
+
+# find most important variables
+varImp_lbw <- var_imp(model_lbw)
+head(varImp_lbw, 10)
+
+```
+
+
+```{r lbw_vif, echo=FALSE}
+#create vector of VIF values
+vif_values <- car::vif(model_lbw)
+
+lbw_vif <- data.frame(
+  Variable = row.names(vif_values),
+  VIF = as.numeric(vif_values[,1]),
+  Outcome = "LBW"
+  )
+
+```
+
+
+## Premature birth
+```{r basic_reg_prem, echo=FALSE}
+# build formula
+prem_formula <- write_formula("`Premature`", all_variables, quote_wrap = TRUE)
+print(prem_formula)
+
+# run logistic regression
+model_prem <- glm(prem_formula, family = binomial, data=badger)
+
+# find most important variables
+varImp_prem <- var_imp(model_prem)
+head(varImp_prem, 10)
+```
+
+```{r prem_vif, echo=FALSE}
+#create vector of VIF values
+vif_values <- car::vif(model_prem)
+
+prem_vif <- data.frame(
+  Variable = row.names(vif_values),
+  VIF = as.numeric(vif_values[,1]),
+  Outcome = "Premature"
+  )
+
+```
+
+## Stillbirth
+
+```{r basic_reg_stillbirth, echo=FALSE}
+# build formula
+sb_formula <- write_formula("`StillBirth`", all_variables, quote_wrap = TRUE)
+print(sb_formula)
+
+# run logistic regression
+model_sb <- glm(sb_formula, family = binomial, data=badger)
+
+# find most important variables
+varImp_sb <- var_imp(model_sb)
+head(varImp_sb, 10)
+```
+
+```{r sb_vif, echo=FALSE}
+#create vector of VIF values
+vif_values <- car::vif(model_sb)
+
+sb_vif <- data.frame(
+  Variable = row.names(vif_values),
+  VIF = as.numeric(vif_values[,1]),
+  Outcome = "Stillbirth"
+  )
+
+```
+
+## Neonatal death
+
+```{r basic_reg_NeonatalDeath, echo=FALSE}
+# build formula
+nd_formula <- write_formula("`NeonatalDeath`", all_variables, quote_wrap = TRUE)
+print(nd_formula)
+
+# run logistic regression
+model_nd <- glm(nd_formula, family = binomial, data=badger)
+
+# find most important variables
+varImp_nd <- var_imp(model_nd)
+head(varImp_nd, 10)
+```
+
+```{r nd_vif, echo=FALSE}
+#create vector of VIF values
+vif_values <- car::vif(model_nd)
+
+nd_vif <- data.frame(
+  Variable = row.names(vif_values),
+  VIF = as.numeric(vif_values[,1]),
+  Outcome = "NeonatalDeath"
+  )
+
+```
+
+## VIF
+
+```{r vif, echo=FALSE}
+
+library(elementalist) # devtools::install_github("teunbrand/elementalist")
+
+#combine VIF values
+
+all_vif <- rbind(lbw_vif, prem_vif, sb_vif, nd_vif)
+
+# Colour blind friendly pallet
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
+all_vif$Variable <- gsub("`", "",all_vif$Variable)
+
+
+all_vif$Variable <- stringr::str_wrap(all_vif$Variable, width = 13)
+
+vif_plot <- ggplot(all_vif, aes(y = VIF, x = Variable, fill = Outcome)) +
+  geom_bar(stat="identity", position = "dodge") +
+  scale_fill_manual(values=cbPalette) +
+  #geom_hline(yintercept = 5, linetype='dashed') +
+  theme_bw() +
+  theme(
+    legend.position = c(0.9, 0.7),
+    axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+    text = element_text(family="serif", size = 10, colour = "black"),
+    legend.text = element_text(size=7),
+    legend.key = element_rect(fill = "transparent"),
+    legend.background = element_rect(fill='transparent'), 
+    legend.box.background = element_rect_round(radius = unit(0.1, "snpc"),fill='white',colour = 'gray'),
+    legend.key.height= unit(5, 'mm'),
+    legend.key.width= unit(5, 'mm')
+  ) +
+  labs(fill = NULL) +
+  ylim(0, 4) +
+  xlab("") +
+  ylab("Variance Inflation Factor") 
+
+vif_plot
+
+ggsave("../../../outputs/figures/vif.pdf", vif_plot,
+       height = 3.5, width = 8)
+
+```
+
+## Basic regression final results
+```{r basic_reg_vis, echo=FALSE, warning=FALSE}
+# # merge tables 
+# tbl_output_intermediate <-
+#   tbl_merge(
+#     tbls = list(
+#       tbl_regression(model_lbw, exponentiate = TRUE), 
+#       tbl_regression(model_prem, exponentiate = TRUE)
+#       ),
+#     tab_spanner = c("**Low birth weight**", "**Premature Birth**")
+#   ) %>%
+#   as_gt()
+# 
+# tbl_output_intermediate %>%
+#   gt::gtsave(filename = "../../../outputs/BN_int_reg_table.tex")
+# 
+# # Print out table
+# tbl_output_intermediate
+# 
+# # merge tables 
+# tbl_output_final <-
+#   tbl_merge(
+#     tbls = list(
+#       tbl_regression(model_sb, exponentiate = TRUE),
+#       tbl_regression(model_nd, exponentiate = TRUE)
+#       ),
+#     tab_spanner = c("**Stillbirth**", "Neonatal Death")
+#   ) %>%
+#   as_gt()
+# 
+# tbl_output_final %>%
+#   gt::gtsave(filename = "../../../outputs/BN_reg_table.tex")
+# 
+# # Print out table
+# tbl_output_final 
+```
+
+We see that the result is not statistically significant for the following variables: AgeLessThan20, AlcoholAbuse, LD, DiffUndEnglish, Unsupported, Homeless, Citizenship, InterpreterRequired, FGM. Therefore, we remove these variables from our model.
+
+```{r add_marginal, include=FALSE}
+# all_important <- c(
+#   "NumberOfBabies", "substanceAbuse","Social Services",
+#   "DomesticAbuse","MentalHealth","HousingIssues",
+#   "FinancialIssues","sensoryAndPhysicalDis","BMI>35",
+#   "IMD Quintile","Ethnicity","SmokingAtDelivery",
+#   "Gestational_Diabetes","Consanguineous Union",
+#   "Folic Acid Taken", "Late booking", "> 4 missed apts")
+
+
+all_important <- c(
+  "Mother Ethnicity", "IMD Quintile", "Financial/Housing Issues",
+  "Substance Abuse","Social Services", "Age Group",
+  "Twins", "Mental Health Issue(s)","Sensory/Physical Disability",
+  "BMI>35", "Gestational Diabetes", "Smoking at Delivery",
+  "Folic Acid Taken", "Late booking", "> 4 missed apts",
+  "Consanguineous Union")
+
+formula_plus <- write_formula("`Output:`", all_important, quote_wrap = TRUE)
+
+
+less_variables <- c("Ethnicity Group","IMD Quintile", "Age Group",  "Folic Acid Taken", 
+           "Financial/Housing Issues", "Twins", "Smoking at Delivery",
+           "Mental Health Issue(s)")
+
+formula_minus <- write_formula("`Output:`", all_important, quote_wrap = TRUE)
+```
+
+Our maximused formula now becomes:
+
+`r formula_plus`
+
+While our reduced formula is instead:
+
+`r formula_minus`
+
+## Population description
+
+First, lets calculate the proportions of each outcome for each variable
+
+```{r get_ref_summary_int, results='asis'}
+table1 <- badger %>%
+  mutate(Outcome = case_when(
+    Premature ~ "Premature",
+    LowBirthWeight ~ "LBW",
+    TRUE ~ "Normal"
+  ),
+  Outcome = factor(Outcome, levels = c("Normal", "LBW", "Premature"))
+  ) %>%
+  tbl_summary(
+    include = all_important,
+    by = "Outcome", # split table by group
+#    missing = "no" # don't list missing data separately
+  ) %>%
+  #add_overall() %>% 
+  #add_ci() %>%
+  modify_header(label = "**Variable**") %>% # update the column header
+  bold_labels() 
+
+table1
+
+table1 %>%
+   as_gt() %>%
+   gt::gtsave(filename = "../../../outputs/BN_int_reg_table.tex")
+```
+
+```{r get_ref_summary_final, results='asis'}
+table2 <- badger %>%
+  mutate(Outcome = case_when(
+    StillBirth == 1 ~ "Stillbirth",
+    NeonatalDeath == 1 ~ "Neonatal Death",
+    TRUE ~ "Normal"
+  ),
+  Outcome = factor(Outcome, levels = c("Normal", "Stillbirth", "Neonatal Death"))
+  ) %>%
+  tbl_summary(
+    include = less_variables,
+    by = "Outcome", # split table by group
+#    missing = "no" # don't list missing data separately
+  ) %>%
+  #add_overall() %>% 
+  #add_ci() %>%
+  modify_header(label = "**Variable**") %>% # update the column header
+  bold_labels() 
+
+table2
+
+table2 %>%
+   as_gt() %>%
+   gt::gtsave(filename = "../../../outputs/BN_final_reg_table.tex")
+```
+
+## Perform regression agian
+
+```{r final_reg, include = FALSE}
+
+# Maximised formula 
+lbw_ff <- write_formula("LowBirthWeight", all_important, quote_wrap = TRUE)
+model_lbw_final <- glm(lbw_ff, family = binomial, data=badger)
+
+prem_ff <- write_formula("Premature", all_important, quote_wrap = TRUE)
+model_prem_final <- glm(prem_ff, family = binomial, data=badger)
+
+# Reduced formula
+nd_ff <- write_formula("NeonatalDeath", less_variables, quote_wrap = TRUE)
+model_nd_final <- glm(nd_ff, family = binomial, data=badger)
+
+sb_ff <- write_formula("StillBirth", less_variables, quote_wrap = TRUE)
+model_sb_final <- glm(sb_ff, family = binomial, data=badger)
+
+```
+
+## Display results
+
+```{r merge_tables, echo=FALSE, warning=FALSE}
+set.seed(1)
+
+lbw_exp = tbl_regression(model_lbw_final, exponentiate = TRUE) 
+prem_exp = tbl_regression(model_prem_final, exponentiate = TRUE)
+sb_exp = tbl_regression(model_sb_final, exponentiate = TRUE)
+nd_exp = tbl_regression(model_nd_final, exponentiate = TRUE)
+```
+
+```{r Final Results save, include=FALSE}
+
+lbw_exp = lbw_exp %>% 
+  as_tibble() 
+  
+prem_exp = prem_exp %>% 
+  as_tibble() 
+
+sb_exp = sb_exp %>% 
+  as_tibble() 
+
+nd_exp = nd_exp %>%
+  as_tibble()
+
+dataset_names <- list('LBW' = lbw_exp, 
+                      'Premature' = prem_exp,
+                      'StillBirth' = sb_exp,
+                      'NeonatalDeath' = nd_exp)
+
+openxlsx::write.xlsx(dataset_names, 
+                     file = '../../../data/BadgerNet/BadgerNet-reg-results.xlsx') 
+```
+
+
+```{r forest_plot_function}
+library(forestplot)
+
+fplot <- function(model_tib, 
+                  title = "",
+                  savename = "forest.pdf") {
+  # model_tib = tibble of the regression table
+  model_tib <- tidyr::separate(model_tib, col = `**95% CI**`, into = c("lowerCI", "upperCI"), sep = ",")
+  model_tib <- model_tib %>%
+  mutate(
+    `Odds Label`= case_when(
+      is.na(`**OR**`) & 
+        `**Characteristic**` %in% colnames(badger) ~ NA,
+      is.na(`**OR**`) ~ "Ref",
+      TRUE ~ as.character(`**OR**`)
+    ),
+    `Odds Ratio`= case_when(
+      is.na(`**OR**`) & 
+        `**Characteristic**` %in% colnames(badger) ~ NA,
+      is.na(`**OR**`) ~ 1,
+      as.numeric(`**OR**`) > 10 ~ NA,
+      TRUE ~ as.numeric(`**OR**`)
+    ),
+    `lowerCI`= case_when(
+      is.na(`lowerCI`) & 
+        `**Characteristic**` %in% colnames(badger) ~ NA,
+      is.na(`lowerCI`) ~ 1,
+      TRUE ~ as.numeric(`lowerCI`)
+    ),
+    `upperCI`= case_when(
+      is.na(`upperCI`) & 
+        `**Characteristic**` %in% colnames(badger) ~ NA,
+      is.na(`upperCI`) ~ 1,
+      TRUE ~ as.numeric(`upperCI`)
+    )
+  )
+
+  # Prepare forest plot
+  new_fp <- model_tib %>% 
+    select(c("**Characteristic**", "Odds Label", "**p-value**" )) |> 
+    forestplot(
+    clip = c(-1, 6),
+    graph.pos=2,
+    mean= model_tib["Odds Ratio"], 
+    zero=1,
+    title=title,
+    lower = model_tib["lowerCI"],
+    upper = model_tib["upperCI"],
+    boxsize=0.2,
+    lwd.ci = 1.7,
+    line.margin = unit(1, "mm"),
+    lineheight = unit(6, "mm"),
+    colgap = unit(5, "mm"),
+    fn.ci_norm="fpDrawNormalCI",
+    graphwidth=unit(0.2, "npc"),
+    xticks = c(-1, 0,1, 2,3, 4,5, 6),
+    is.summary = model_tib$`**Characteristic**` %in% colnames(badger),
+    col=fpColors(box="#1f77b4", lines="#73B7E5", zero = "#D0D0D0"),
+    txt_gp=fpTxtGp(label=gpar(cex=0.9),
+                ticks=gpar(cex=0.8),
+                xlab = gpar(cex=0.9),
+                title=gpar(cex=1)),
+    ) |>
+    fp_add_header(
+      `**Characteristic**` = c(""),
+      `Odds Label` = c("Odds Ratio"),
+      `**p-value**` = c("P Value")
+      ) |>
+    fp_set_style(
+      txt_gp = fpTxtGp(label = gpar(fontfamily = "serif")),
+      )
+  
+  return(new_fp)
+}
+
+```
+
+
+
+```{r combine_forest_large}
+
+lbw_fp <- fplot(lbw_exp, title = "Low Birth Weight")
+prem_fp <- fplot(prem_exp, title = "Premature")
+
+p1 <- ggplotify::grid2grob(print(lbw_fp)) 
+p2 <- ggplotify::grid2grob(print(prem_fp))
+both_big <- cowplot::plot_grid(
+  p1,
+  NULL,
+  p2,
+  ncol = 3,
+  rel_widths = c(1, 0.1, 1)
+)
+both_big
+
+
+ggplot2::ggsave(both_big, 
+                filename = "../../../outputs/figures/reg_lbw_prem.pdf", 
+                width = 12,
+                height = 14)
+```
+
+```{r combine_forest_small}
+
+sb_fp <- fplot(sb_exp, title = "Stillbirth")
+nd_fp <- fplot(nd_exp, title = "Neonatal Death")
+
+p1 <- ggplotify::grid2grob(print(sb_fp))
+p2 <- ggplotify::grid2grob(print(nd_fp))
+both_smalls <- cowplot::plot_grid(
+  p1,
+  NULL,
+  p2,
+  ncol = 3,
+  rel_widths = c(1, 0.1, 1)
+)
+both_smalls
+
+ggplot2::ggsave(both_smalls, 
+                filename = "../../../outputs/figures/reg_sb_nd.pdf", 
+                width = 12,
+                height = 7)
+```
