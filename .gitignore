@@ -8,7 +8,7 @@
 
 # Exclude the following directories 
 /data/
-/output/
+/outputs/
 /old/
 
 # Exclude data file types
@@ -20,6 +20,12 @@
 *.xlsb
 *.csv
 *.pdf
+
+# Exclude image files
+*.svg
+*.png
+*.jpg
+*.jpeg
 
 # Exlude tex files
 *.tex
