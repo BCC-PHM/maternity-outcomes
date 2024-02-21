@@ -54,30 +54,22 @@ for i, sheet in enumerate(sheets):
     
     # Plot results
     n_vars = len(reg_result)
-    plot_mask = (reg_result["Characteristic"] == "Unknown") + \
-                (reg_result["Characteristic"] == "Twins") + \
-                (reg_result["Characteristic"] == "White and Black African")
-    
     reg_result["Plot_OR"] = reg_result["OR"]
-    reg_result.loc[plot_mask, "Plot_OR"] = -1000
     
-    ax.errorbar(reg_result["Plot_OR"],range(n_vars)[::-1], fmt = "o", ms = 6,
-                color = "k",
-                xerr=[reg_result["error-lower"],
-                      reg_result["error-upper"]], zorder = 1,
-                ecolor = "k")
-    ax.plot(reg_result["Plot_OR"],range(n_vars)[::-1], "o", ms = 4,
-                color = bump_blue)
 
 
-    for var in [["Unknown", 16], ["Twins",9], ["White and Black African",23]]:
-        if var[0] == "Twins" and sheet == "Stillbirth":
+    for var in [["Twins",9], ["White and Black African",23]]:
+        if var[0] == "Twins" and sheet == "LBW":
             pass
         elif var[0] == "Unknown" and sheet == "LBW":
             pass
         elif var[0] == "White and Black African" and sheet != "Stillbirth":
             pass
         else:
+            plot_mask = (reg_result["Characteristic"] == var[0]) 
+
+            reg_result.loc[plot_mask, "Plot_OR"] = -1000
+            
             mask = reg_result["Characteristic"] == var[0]
             OR = reg_result.loc[mask, "OR"].values[0]
             err_up = reg_result.loc[mask, "CI-upper"].values[0]
@@ -87,6 +79,16 @@ for i, sheet in enumerate(sheets):
             ax.annotate(text, (2.5, var[1]-0.4),ha='center', size = 9)
             ax.arrow(3., var[1], 0.3, 0, head_width = 0.23, head_length = 0.2,
                      color = "tab:red")
+            
+    ax.errorbar(reg_result["Plot_OR"],range(n_vars)[::-1], fmt = "o", ms = 6,
+                color = "k",
+                xerr=[reg_result["error-lower"],
+                      reg_result["error-upper"]], zorder = 1,
+                ecolor = "k")
+    ax.plot(reg_result["Plot_OR"],range(n_vars)[::-1], "o", ms = 4,
+                color = bump_blue)
+
+            
     # Define axis limits
     ax.set_xlim(0, 4)
     ax.plot([1,1],[-1, n_vars], "k--")
