@@ -10,10 +10,10 @@ from matplotlib import rcParams
 rcParams['mathtext.fontset'] = 'stix'
 rcParams['font.family'] = 'STIXGeneral'
 
-AF_path = r"C:\Users\TMPCDDES\OneDrive - Birmingham City Council\Documents\Main work\MiscCode\inequality-vis"
+AF_path = r"C:\Users\TMPCDDES\OneDrive - Birmingham City Council\Documents\Main work\MiscCode\EquiPy"
 if not AF_path in sys.path:
     sys.path.append(AF_path)
-import AttributableFraction as AF
+import EquiPy.AF as AF
 
 data = pd.read_parquet('../data/BadgerNet/BadgerNet-processed.parquet', 
                         engine='pyarrow')

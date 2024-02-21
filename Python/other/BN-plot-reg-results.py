@@ -5,18 +5,18 @@ Plotting OR
 
 import pandas as pd
 import matplotlib.pyplot as plt
-import numpy as np
+#import numpy as np
 
 from matplotlib import rcParams
 rcParams['mathtext.fontset'] = 'stix'
 rcParams['font.family'] = 'STIXGeneral'
 
-reg_path = '../data/BadgerNet/BadgerNet-reg-results-sorted.xlsx'
+reg_path = '../../data/BadgerNet/BadgerNet-reg-results-sorted.xlsx'
 
 bump_blue = "tab:blue"#(33/255, 194/255, 214/255)
 
-fig = plt.figure(figsize = (10, 12))
-sheets = ["LBW", "Premature", "Stillbirth", "Neonatal Death"]
+fig = plt.figure(figsize = (10, 10))
+sheets = ["LBW", "Premature"]
 for i, sheet in enumerate(sheets):
     # Load sheet
     reg_result = pd.read_excel(reg_path, sheet_name=sheet)
@@ -36,7 +36,7 @@ for i, sheet in enumerate(sheets):
     reg_result.loc[remove_mask, "OR"] = -1000
     
     # prepare new plot axis
-    ax = fig.add_subplot(1,4,i+1)
+    ax = fig.add_subplot(1,2,i+1)
     
     # Plot group regions
     borders = [0, 4, 10, 12, 14, 16, 26]
@@ -84,7 +84,7 @@ for i, sheet in enumerate(sheets):
             err_down = reg_result.loc[mask, "CI-lower"].values[0]
             text = "OR = {:.3}\n({:.3} to {:.3})".format(OR, err_down, err_up)
             print(var, "\n\t", text)
-            ax.annotate(text, (2, var[1]-0.4),ha='center', size = 9)
+            ax.annotate(text, (2.5, var[1]-0.4),ha='center', size = 9)
             ax.arrow(3., var[1], 0.3, 0, head_width = 0.23, head_length = 0.2,
                      color = "tab:red")
     # Define axis limits
@@ -103,4 +103,4 @@ for i, sheet in enumerate(sheets):
         
     ax.set_xlabel("Odds Ratio", size = 14)
         
-fig.savefig("../outputs/figures/reg_results_v2.png", bbox_inches = "tight", dpi = 300)
+fig.savefig("../../outputs/figures/reg_results_v3.pdf", bbox_inches = "tight", dpi = 300)

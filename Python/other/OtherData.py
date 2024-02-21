@@ -17,10 +17,10 @@ rcParams['font.family'] = 'STIXGeneral'
 
 plt.rcParams.update({'font.size': 12})
 
-fig_path = "../outputs/figures/"
+fig_path = "../../outputs/figures/"
 
 
-data = pd.read_csv("..\data\general\inf_mort_trends.csv")
+data = pd.read_csv("..\..\data\general\inf_mort_trends_v2.csv")
 
 #%% Infant mortality - option 1
 
@@ -28,7 +28,7 @@ data = data.dropna(subset=['Parent Name'])
 plt.figure(figsize=(6,3))
 
 for AreaName in ["England", "Birmingham", "Solihull"]:
-    mask1 = data["Area Name"] == AreaName
+    mask1 = data["AreaName"] == AreaName
     mask2 = data["Category Type"].isna()
     
     mask = mask1 * mask2
@@ -42,7 +42,7 @@ for AreaName in ["England", "Birmingham", "Solihull"]:
     plt.plot(x, y, "-o", lw=2, label = AreaName)
     #plt.fill_between(x, down, up, alpha = 0.3)
 plt.xticks(np.arange(2000, 2025,5))
-plt.xlim(2002, 2020)
+plt.xlim(2002, 2021)
 plt.legend()
 plt.ylabel("Infant deaths under 1 year\nof age per 1000 live births", size = 14)
 plt.ylim(0, 14)
@@ -55,7 +55,7 @@ plt.savefig(fig_path + "inf_mort_sep.pdf")
 data = data.dropna(subset=['Parent Name'])
 plt.figure(figsize=(6,3))
 
-mask1 = data["Area Name"] == "England"
+mask1 = data["AreaName"] == "England"
 mask2 = data["Category Type"].isna()
 
 mask = mask1 * mask2
@@ -65,8 +65,8 @@ date = data[mask]["Time period"]#[::2]
 x = [int(date_i[:4]) + 1 for date_i in date]
 plt.plot(x, y1, "-o", lw=2, label = "England")
 
-mask_Brum = (data["Area Name"] == "Birmingham") * mask2
-mask_Soli = (data["Area Name"] == "Solihull") * mask2
+mask_Brum = (data["AreaName"] == "Birmingham") * mask2
+mask_Soli = (data["AreaName"] == "Solihull") * mask2
 y2_num = data["Count"][mask_Brum].values + data["Count"][mask_Soli].values
 y2_den = data["Denominator"][mask_Brum].values + data["Denominator"][mask_Soli].values
 
@@ -86,7 +86,7 @@ plt.fill_between(x, Bsol_down, Bsol_up, alpha = 0.3,
                  color = "tab:orange", lw=0)
 
 plt.xticks(np.arange(2000, 2025,5))
-plt.xlim(2002, 2020)
+plt.xlim(2002, 2021)
 plt.legend()
 plt.ylabel("Infant deaths under 1 year\nof age per 1000 live births", size = 14)
 plt.ylim(0, 14)
