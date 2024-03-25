@@ -5,9 +5,9 @@ library(dplyr)
 #library(DescTools)
 
 # Load data
-badger1 <- readxl::read_excel("../../data/BadgerNet/raw/BadgerNet_Oct20_to_Oct22.xlsx",
+badger1 <- readxl::read_excel("../data/BadgerNet/raw/BadgerNet_Oct20_to_Oct22.xlsx",
                       sheet = "Births")
-badger2 <- readxl::read_excel("../../data/BadgerNet/raw/BadgerNet_May21_to_May23.xlsx",
+badger2 <- readxl::read_excel("../data/BadgerNet/raw/BadgerNet_May21_to_May23.xlsx",
                       sheet = "Births") %>%
   # filter for only births that aren't in the first data set
   filter(MthYr > max(badger1$MthYr))
@@ -271,7 +271,7 @@ empty_badger <- badger %>%
 
 arrow::write_parquet(
   badger,
-  sink = "../../data/BadgerNet/BadgerNet-processed.parquet"
+  sink = "../data/BadgerNet/BadgerNet-processed.parquet"
   )
 
 # openxlsx::write.xlsx(dataset_names, 

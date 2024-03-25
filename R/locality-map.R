@@ -5,8 +5,8 @@ library(BSol.mapR)
 source("~/Main work/MiscCode/r-regression-tools/r-regression-tools.R")
 
 badger_load <- load_with_ref(
-  "../../data/BadgerNet/BadgerNet-processed.parquet",
-  seperate_ref_sheet = "../../data/BadgerNet/BadgerNet-RefGroups.xlsx",
+  "../data/BadgerNet/BadgerNet-processed.parquet",
+  seperate_ref_sheet = "../data/BadgerNet/BadgerNet-RefGroups.xlsx",
   ref_sheet = "reference",
   add_colon = FALSE,
   return_ref = TRUE
@@ -29,7 +29,7 @@ locality_count <- data %>%
   ) %>%
   arrange(desc(percentage))
 
-maternity_wards <- readxl::read_excel("../../data/general/maternity_wards.xlsx")
+maternity_wards <- readxl::read_excel("../data/general/maternity_wards.xlsx")
 
 plot_colour = "#7d4fff" 
 palette <- ggpubr::get_palette((c("white", plot_colour)), 20)
@@ -56,7 +56,7 @@ map <- add_points(
 
 save_map(
   map,
-  save_name = "../../outputs/figures/locality-map.pdf",
+  save_name = "../outputs/figures/locality-map.pdf",
   width = 6,
   height = 5
   )

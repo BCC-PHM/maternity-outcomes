@@ -29,7 +29,7 @@ setwd("~/Main work/Maternity outcomes/maternity-outcomes/R/statistical_analysis/
 
 # Load data
 badger_load <- load_with_ref(
-  "../../../data/BadgerNet/BadgerNet-processed.parquet",
+  "../../data/BadgerNet/BadgerNet-processed.parquet",
   seperate_ref_sheet = "../../../data/BadgerNet/BadgerNet-RefGroups.xlsx",
   ref_sheet = "reference",
   add_colon = FALSE,
@@ -220,7 +220,7 @@ badger2 <- badger %>%
 The following is a correlation matrix for our primary variables.
 
 ```{r corr_mat}
-pdf(file = "../../outputs/figures/correlation_2.pdf")
+pdf(file = "../outputs/figures/correlation_2.pdf")
 par(family="serif")
 corrplot::corrplot(cor(badger2),
          method="square", 
@@ -418,7 +418,7 @@ vif_plot <- ggplot(all_vif, aes(y = VIF, x = Variable, fill = Outcome)) +
 
 vif_plot
 
-ggsave("../../outputs/figures/vif.pdf", vif_plot,
+ggsave("../outputs/figures/vif.pdf", vif_plot,
        height = 3.5, width = 8)
 
 ```
@@ -526,7 +526,7 @@ table1
 
 table1 %>%
    as_gt() %>%
-   gt::gtsave(filename = "../../outputs/BN_int_reg_table.tex")
+   gt::gtsave(filename = "../outputs/BN_int_reg_table.tex")
 ```
 
 ```{r get_ref_summary_final, results='asis'}
@@ -552,7 +552,7 @@ table2
 
 table2 %>%
    as_gt() %>%
-   gt::gtsave(filename = "../../outputs/BN_final_reg_table.tex")
+   gt::gtsave(filename = "../outputs/BN_final_reg_table.tex")
 ```
 
 ## Perform regression agian
@@ -606,7 +606,7 @@ dataset_names <- list('LBW' = lbw_exp,
                       'NeonatalDeath' = nd_exp)
 
 openxlsx::write.xlsx(dataset_names, 
-                     file = '../../../data/BadgerNet/BadgerNet-reg-results.xlsx') 
+                     file = '../../data/BadgerNet/BadgerNet-reg-results.xlsx') 
 ```
 
 
@@ -730,7 +730,7 @@ both_big
 
 
 ggplot2::ggsave(both_big, 
-                filename = "../../outputs/figures/reg_lbw_prem.pdf", 
+                filename = "../outputs/figures/reg_lbw_prem.pdf", 
                 width = 12,
                 height = 14)
 ```
@@ -753,7 +753,7 @@ both_smalls <- cowplot::plot_grid(
 both_smalls
 
 ggplot2::ggsave(both_smalls, 
-                filename = "../../outputs/figures/reg_sb_nd.pdf", 
+                filename = "../outputs/figures/reg_sb_nd.pdf", 
                 width = 12,
                 height = 7)
 ```
