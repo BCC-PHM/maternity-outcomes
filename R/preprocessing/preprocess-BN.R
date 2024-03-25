@@ -74,12 +74,6 @@ badger <- badger1 %>%
     ),
     # Regression Ethnicities
     `Mother Ethnicity` = case_when(
-        # Might re-group mixed depending on new reg results
-           # EthnicCategory %in% c(
-           #   "White and Black African", 
-           #   "White and Black Caribbean", 
-           #   "White and Asian",
-           #   "Mixed-Other") ~ "Mixed",
            AllEthnicities %in% c(
              "NULL", 
              "Not stated", 
@@ -172,9 +166,15 @@ badger <- badger1 %>%
       Genetic_Disorder == 0 ~ "No",
       Genetic_Disorder == 1 ~ "Yes",
     ),
+    GestationAtBookingWeeks = as.numeric(GestationAtBookingWeeks),
     `Late booking` = case_when(
       GestationAtBookingWeeks <= 19 ~ "No",
       GestationAtBookingWeeks > 19 ~ "Yes",
+      TRUE ~ "Unknown"
+    ),
+    `Early booking` = case_when(
+      GestationAtBookingWeeks < 10 ~ "Yes",
+      GestationAtBookingWeeks >= 10 ~ "No",
       TRUE ~ "Unknown"
     ),
     `> 4 missed apts` = case_when(

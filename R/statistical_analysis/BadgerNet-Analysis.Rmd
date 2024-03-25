@@ -220,7 +220,7 @@ badger2 <- badger %>%
 The following is a correlation matrix for our primary variables.
 
 ```{r corr_mat}
-pdf(file = "../../../outputs/figures/correlation_2.pdf")
+pdf(file = "../../outputs/figures/correlation_2.pdf")
 par(family="serif")
 corrplot::corrplot(cor(badger2),
          method="square", 
@@ -418,7 +418,7 @@ vif_plot <- ggplot(all_vif, aes(y = VIF, x = Variable, fill = Outcome)) +
 
 vif_plot
 
-ggsave("../../../outputs/figures/vif.pdf", vif_plot,
+ggsave("../../outputs/figures/vif.pdf", vif_plot,
        height = 3.5, width = 8)
 
 ```
@@ -483,9 +483,10 @@ all_important <- c(
 formula_plus <- write_formula("`Output:`", all_important, quote_wrap = TRUE)
 
 
-less_variables <- c("Ethnicity Group","IMD Quintile", "Age Group",  "Folic Acid Taken", 
-           "Financial/Housing Issues", "Twins", "Smoking at Delivery",
-           "Mental Health Issue(s)")
+less_variables <- c("Ethnicity Group","IMD Quintile", "Financial/Housing Issues",
+                    "Age Group",   "Twins", "Mental Health Issue(s)", 
+                  "Smoking at Delivery","Folic Acid Taken", "Late booking"
+           )
 
 formula_minus <- write_formula("`Output:`", all_important, quote_wrap = TRUE)
 ```
@@ -525,7 +526,7 @@ table1
 
 table1 %>%
    as_gt() %>%
-   gt::gtsave(filename = "../../../outputs/BN_int_reg_table.tex")
+   gt::gtsave(filename = "../../outputs/BN_int_reg_table.tex")
 ```
 
 ```{r get_ref_summary_final, results='asis'}
@@ -551,7 +552,7 @@ table2
 
 table2 %>%
    as_gt() %>%
-   gt::gtsave(filename = "../../../outputs/BN_final_reg_table.tex")
+   gt::gtsave(filename = "../../outputs/BN_final_reg_table.tex")
 ```
 
 ## Perform regression agian
