@@ -25,12 +25,12 @@ library(ggplot2)
 library(gtsummary)
 
 source("~/Main work/MiscCode/r-regression-tools/r-regression-tools.R")
-setwd("~/Main work/Maternity outcomes/maternity-outcomes/R/statistical_analysis/BadgerNet")
+setwd("~/Main work/Maternity outcomes/maternity-outcomes/R")
 
 # Load data
 badger_load <- load_with_ref(
-  "../../data/BadgerNet/BadgerNet-processed.parquet",
-  seperate_ref_sheet = "../../../data/BadgerNet/BadgerNet-RefGroups.xlsx",
+  "../data/BadgerNet/BadgerNet-processed.parquet",
+  seperate_ref_sheet = "../data/BadgerNet/BadgerNet-RefGroups.xlsx",
   ref_sheet = "reference",
   add_colon = FALSE,
   return_ref = TRUE
@@ -381,7 +381,7 @@ nd_vif <- data.frame(
 
 ```{r vif, echo=FALSE}
 
-library(elementalist) # devtools::install_github("teunbrand/elementalist")
+library(elementalist) # 
 
 #combine VIF values
 
@@ -401,7 +401,7 @@ vif_plot <- ggplot(all_vif, aes(y = VIF, x = Variable, fill = Outcome)) +
   #geom_hline(yintercept = 5, linetype='dashed') +
   theme_bw() +
   theme(
-    legend.position = c(0.9, 0.7),
+    legend.position.inside = c(0.9, 0.7),
     axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
     text = element_text(family="serif", size = 10, colour = "black"),
     legend.text = element_text(size=7),
@@ -606,7 +606,7 @@ dataset_names <- list('LBW' = lbw_exp,
                       'NeonatalDeath' = nd_exp)
 
 openxlsx::write.xlsx(dataset_names, 
-                     file = '../../data/BadgerNet/BadgerNet-reg-results.xlsx') 
+                     file = '../data/BadgerNet/BadgerNet-reg-results.xlsx') 
 ```
 
 
@@ -616,18 +616,18 @@ library(forestplot)
 fplot <- function(model_tib, 
                   title = "",
                   part = 1) {
-  if (part == 1) {
-    # keep all cols
-    select_cols = c("**Characteristic**", "Odds Label", "**p-value**" )
-  } else if (part == 2) {
-    # remove characteristic column
-    select_cols = c("Odds Label", "**p-value**" )
-  }
-  
-  
+
   
   # model_tib = tibble of the regression table
-  model_tib <- tidyr::separate(model_tib, col = `**95% CI**`, into = c("lowerCI", "upperCI"), sep = ",")
+  model_tib["**95% CI** 2"] <- model_tib["**95% CI**"]
+  model_tib <- tidyr::separate(model_tib, col = `**95% CI** 2`, into = c("lowerCI", "upperCI"), sep = ",")
+  model_tib$`OR [95% CI]` = paste(
+      model_tib$`**OR**`, 
+      " [", model_tib$lowerCI, 
+      "; ", model_tib$upperCI, "]",
+      sep = ""
+      )
+  
   model_tib <- model_tib %>%
   mutate(
     `Odds Label`= case_when(
@@ -643,6 +643,7 @@ fplot <- function(model_tib,
       as.numeric(`**OR**`) > 10 ~ NA,
       TRUE ~ as.numeric(`**OR**`)
     ),
+    
     `lowerCI`= case_when(
       is.na(`lowerCI`) & 
         `**Characteristic**` %in% colnames(badger) ~ NA,
@@ -654,12 +655,29 @@ fplot <- function(model_tib,
         `**Characteristic**` %in% colnames(badger) ~ NA,
       is.na(`upperCI`) ~ 1,
       TRUE ~ as.numeric(`upperCI`)
+    ),
+    `OR [95% CI]` = case_when(
+      is.na(`**OR**`) & 
+        `**Characteristic**` %in% colnames(badger) ~ NA,
+      is.na(`**OR**`) ~ "Reference",
+      TRUE ~ `OR [95% CI]`
     )
   ) 
   
+
+  if (part == 1) {
+    # remove characteristic column
+
+    model_tib_reduced <- model_tib %>% 
+      select(c("**Characteristic**", "OR [95% CI]", "**p-value**"))
+  } else {
+    # Do nothing
+    model_tib_reduced <- model_tib %>% 
+      select(c("OR [95% CI]", "**p-value**"))
+  } 
+  
   # Prepare forest plot
-  new_fp <- model_tib %>% 
-    select(select_cols) |> 
+  new_fp <- model_tib_reduced |> 
     forestplot(
     clip = c(-1, 6),
     graph.pos= 3 - part,
@@ -684,27 +702,36 @@ fplot <- function(model_tib,
                 title=gpar(cex=1)),
     ) 
   if (part == 1) {
-      new_fp <- new_fp |>
+
+    new_fp <- new_fp |>
     fp_add_header(
       `**Characteristic**` = c(""),
-      `Odds Label` = c("Odds Ratio"),
-      `**p-value**` = c("P Value")
+      `OR [95% CI]` = c("OR [95% CI]"),
+      `**p-value**` = c("p-value")
       ) |>
     fp_set_style(
       txt_gp = fpTxtGp(label = gpar(fontfamily = "serif")),
       )
   } else if (part == 2) {
+    
     new_fp <- new_fp |>
     fp_add_header(
-      `Odds Label` = c("Odds Ratio"),
-      `**p-value**` = c("P Value")
+      `OR [95% CI]` = c("OR [95% CI]"),
+      `**p-value**` = c("p-value")
       ) |>
     fp_set_style(
       txt_gp = fpTxtGp(label = gpar(fontfamily = "serif")),
       )
   }
+  if (part == 1) {
+      new_fp <- new_fp |>
+    fp_set_style(align = "lccc")
+  } else{
+      new_fp <- new_fp |>
+    fp_set_style(align = "ccc")
+  }
 
-  
+
   return(new_fp)
 }
 
@@ -730,7 +757,7 @@ both_big
 
 
 ggplot2::ggsave(both_big, 
-                filename = "../outputs/figures/reg_lbw_prem.pdf", 
+                filename = "../outputs/figures/regression/reg_lbw_prem.pdf", 
                 width = 12,
                 height = 14)
 ```
@@ -753,7 +780,7 @@ both_smalls <- cowplot::plot_grid(
 both_smalls
 
 ggplot2::ggsave(both_smalls, 
-                filename = "../outputs/figures/reg_sb_nd.pdf", 
+                filename = "../outputs/figures/regression/reg_sb_nd.pdf", 
                 width = 12,
-                height = 7)
+                height = 7.8)
 ```
