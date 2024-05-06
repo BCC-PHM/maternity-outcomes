@@ -4,11 +4,6 @@
 
 import pandas as pd
 #import numpy as np
-import sys
-
-from matplotlib import rcParams
-rcParams['mathtext.fontset'] = 'stix'
-rcParams['font.family'] = 'STIXGeneral'
 
 from EquiPy import AF
 
@@ -19,11 +14,14 @@ data = pd.read_parquet('../data/BadgerNet/BadgerNet-processed.parquet',
 #data.loc[data.loc[:,"EthnicCategory"] == "Any Other ethnic group","EthnicCategory"] = "Other"
 
 data = data[data["NumberOfBabies"] == 1]
+
+
 #%% Pre-process
 
 data_smaller = data[["Ethnicity Group", "IMD Quintile", "Premature", "LowBirthWeight"]].copy()
 
 data_smaller = data_smaller[data_smaller["Ethnicity Group"] != "Other"]
+data_smaller = data_smaller[data_smaller["Ethnicity Group"] != "Middle Eastern"]
 
 #%% Main code
 titles = ["Premature Birth", "Low Birth Weight"]
@@ -36,7 +34,7 @@ for i, obs in enumerate(["Premature", "LowBirthWeight"]):
                        insuff_text_size = 14, tick_size = 16)
     fig_i.axes[0].set_title(titles[i], size = 18)
     fig_i.axes[0].set_ylabel("IMD Quintile", size = 16)
-    fig_i.savefig("../outputs/figures/attrib_frac/{}_attrib_frac.pdf".format(obs),
+    fig_i.savefig("../outputs/figures/attrib_frac/{}_attrib_frac-MiNet.png".format(obs),
                 bbox_inches = "tight", dpi = 300)   
 
 #%% Combined
