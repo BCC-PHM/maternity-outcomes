@@ -72,9 +72,7 @@ levels(ref$Variable)[match("FolicAcidTakenDuringPregnancy",levels(ref$Variable))
 levels(ref$Variable)[match("Consanguineous_Relationship",levels(ref$Variable))] <- "Consanguineous Union"
 levels(ref$Variable)[match("Consanguineous_Relationship",levels(ref$Variable))] <- "Consanguineous Union"
 
-
-
-#"`NumberOfBabies:`", 
+# List all variables of interest
 all_variables = c("NumberOfBabies","Age Group",
 "AlcoholAbuse","substanceAbuse","Social Services",
 "DomesticAbuse","LD","English Difficulties",
@@ -85,7 +83,7 @@ all_variables = c("NumberOfBabies","Age Group",
 "Consanguineous Union","Folic Acid Taken", "FGM", 
 "Late booking")
 
-# limit ref to relevant variables
+# limit reference to variables of interest
 ref <- ref %>%
   filter(Variable %in% all_variables)
 
@@ -106,14 +104,15 @@ The risk ratios for each of the regressions calculated below are given relative
 to the following reference group. 
 
 ```{r comment='', echo=FALSE, results='asis'}
-
  knitr::kable(ref, caption = "Reference group for logistic regression.")
 ```
 
 
-## Variable Corrlation Matrix
+## Variable Correlation Matrix
 
 ```{r calc_corr, include=FALSE}
+
+# Convert variables to 1/0 to enable correlation matrix to be calculated
 badger2 <- badger %>%
   mutate(
     Unsupported = case_when(
@@ -425,52 +424,44 @@ ggsave("../outputs/figures/vif.pdf", vif_plot,
 
 ## Basic regression final results
 ```{r basic_reg_vis, echo=FALSE, warning=FALSE}
-# # merge tables 
-# tbl_output_intermediate <-
-#   tbl_merge(
-#     tbls = list(
-#       tbl_regression(model_lbw, exponentiate = TRUE), 
-#       tbl_regression(model_prem, exponentiate = TRUE)
-#       ),
-#     tab_spanner = c("**Low birth weight**", "**Premature Birth**")
-#   ) %>%
-#   as_gt()
-# 
-# tbl_output_intermediate %>%
-#   gt::gtsave(filename = "../../../outputs/BN_int_reg_table.tex")
-# 
-# # Print out table
-# tbl_output_intermediate
-# 
-# # merge tables 
-# tbl_output_final <-
-#   tbl_merge(
-#     tbls = list(
-#       tbl_regression(model_sb, exponentiate = TRUE),
-#       tbl_regression(model_nd, exponentiate = TRUE)
-#       ),
-#     tab_spanner = c("**Stillbirth**", "Neonatal Death")
-#   ) %>%
-#   as_gt()
-# 
-# tbl_output_final %>%
-#   gt::gtsave(filename = "../../../outputs/BN_reg_table.tex")
-# 
-# # Print out table
-# tbl_output_final 
+# merge tables
+tbl_output_intermediate <-
+  tbl_merge(
+    tbls = list(
+      tbl_regression(model_lbw, exponentiate = TRUE),
+      tbl_regression(model_prem, exponentiate = TRUE)
+      ),
+    tab_spanner = c("**Low birth weight**", "**Premature Birth**")
+  ) %>%
+  as_gt()
+
+tbl_output_intermediate %>%
+  gt::gtsave(filename = "../../../outputs/BN_int_reg_table.tex")
+
+# Print out table
+tbl_output_intermediate
+
+# merge tables
+tbl_output_final <-
+  tbl_merge(
+    tbls = list(
+      tbl_regression(model_sb, exponentiate = TRUE),
+      tbl_regression(model_nd, exponentiate = TRUE)
+      ),
+    tab_spanner = c("**Stillbirth**", "Neonatal Death")
+  ) %>%
+  as_gt()
+
+tbl_output_final %>%
+  gt::gtsave(filename = "../../../outputs/BN_reg_table.tex")
+
+# Print out table
+tbl_output_final
 ```
 
 We see that the result is not statistically significant for the following variables: AgeLessThan20, AlcoholAbuse, LD, DiffUndEnglish, Unsupported, Homeless, Citizenship, InterpreterRequired, FGM. Therefore, we remove these variables from our model.
 
 ```{r add_marginal, include=FALSE}
-# all_important <- c(
-#   "NumberOfBabies", "substanceAbuse","Social Services",
-#   "DomesticAbuse","MentalHealth","HousingIssues",
-#   "FinancialIssues","sensoryAndPhysicalDis","BMI>35",
-#   "IMD Quintile","Ethnicity","SmokingAtDelivery",
-#   "Gestational_Diabetes","Consanguineous Union",
-#   "Folic Acid Taken", "Late booking", "> 4 missed apts")
-
 
 all_important <- c(
   "Mother Ethnicity", "IMD Quintile", "Financial/Housing Issues",
@@ -488,10 +479,10 @@ less_variables <- c("Ethnicity Group","IMD Quintile", "Financial/Housing Issues"
                   "Smoking at Delivery","Folic Acid Taken", "Late booking"
            )
 
-formula_minus <- write_formula("`Output:`", all_important, quote_wrap = TRUE)
+formula_minus <- write_formula("`Output:`", less_variables, quote_wrap = TRUE)
 ```
 
-Our maximused formula now becomes:
+Our maximised formula now becomes:
 
 `r formula_plus`
 
@@ -499,7 +490,7 @@ While our reduced formula is instead:
 
 `r formula_minus`
 
-## Population description
+# Population description
 
 First, lets calculate the proportions of each outcome for each variable
 
@@ -515,7 +506,6 @@ table1 <- badger %>%
   tbl_summary(
     include = all_important,
     by = "Outcome", # split table by group
-#    missing = "no" # don't list missing data separately
   ) %>%
   #add_overall() %>% 
   #add_ci() %>%
@@ -541,10 +531,7 @@ table2 <- badger %>%
   tbl_summary(
     include = less_variables,
     by = "Outcome", # split table by group
-#    missing = "no" # don't list missing data separately
   ) %>%
-  #add_overall() %>% 
-  #add_ci() %>%
   modify_header(label = "**Variable**") %>% # update the column header
   bold_labels() 
 
@@ -555,7 +542,9 @@ table2 %>%
    gt::gtsave(filename = "../outputs/BN_final_reg_table.tex")
 ```
 
-## Perform regression agian
+# Final Regression
+
+## Rerunning with fewer variables
 
 ```{r final_reg, include = FALSE}
 
@@ -742,7 +731,7 @@ fplot <- function(model_tib,
 ```{r combine_forest_large}
 
 lbw_fp <- fplot(lbw_exp, title = "Low Birth Weight", part = 1)
-prem_fp <- fplot(prem_exp, title = "Premature", part = 2)
+prem_fp <- fplot(prem_exp, title = "Premature Birth", part = 2)
 
 p1 <- ggplotify::grid2grob(print(lbw_fp)) 
 p2 <- ggplotify::grid2grob(print(prem_fp))
@@ -754,7 +743,6 @@ both_big <- cowplot::plot_grid(
   rel_widths = c(1, -0.3, 1)
 )
 both_big
-
 
 ggplot2::ggsave(both_big, 
                 filename = "../outputs/figures/regression/reg_lbw_prem.pdf", 

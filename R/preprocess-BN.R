@@ -2,7 +2,6 @@
 
 library(writexl)
 library(dplyr)
-#library(DescTools)
 
 # Load data
 badger1 <- readxl::read_excel("../data/BadgerNet/raw/BadgerNet_Oct20_to_Oct22.xlsx",
@@ -12,10 +11,10 @@ badger2 <- readxl::read_excel("../data/BadgerNet/raw/BadgerNet_May21_to_May23.xl
   # filter for only births that aren't in the first data set
   filter(MthYr > max(badger1$MthYr))
 
+# Combine separate files
 badger <- badger1 %>%
   select(colnames(badger2)) %>%
   rbind(badger2) %>%
-  #filter(GestationAtDeliveryWeeks > 24) %>%
   mutate(
     # Term baby with weight less than 2.5kg
     LowBirthWeight = (`BirthWeight_Grams <2500`) &
@@ -258,21 +257,14 @@ len5 <- nrow(badger)
 
 print(paste(len4 - len5, " entries removed"))
 
-
 print(paste("Final size:", len5))
 # Get empty dataframe 
 empty_badger <- badger %>%
   filter(`IMD Quintile` == "Impossible")
 
-
-
-# dataset_names <- list('data' = badger, 
-#                       'reference' = empty_badger)
-
+# Save as parquet file 
 arrow::write_parquet(
   badger,
   sink = "../data/BadgerNet/BadgerNet-processed.parquet"
   )
 
-# openxlsx::write.xlsx(dataset_names, 
-#                      file = '../../data/BadgerNet/BadgerNet-processed.xlsx') 

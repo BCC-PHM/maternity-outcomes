@@ -4,6 +4,7 @@ library(BSol.mapR)
 
 source("~/Main work/MiscCode/r-regression-tools/r-regression-tools.R")
 
+# Load BadgerNet data
 badger_load <- load_with_ref(
   "../data/BadgerNet/BadgerNet-processed.parquet",
   seperate_ref_sheet = "../data/BadgerNet/BadgerNet-RefGroups.xlsx",
@@ -12,7 +13,7 @@ badger_load <- load_with_ref(
   return_ref = TRUE
 )
 
-
+# Update locality names
 data <- badger_load[[1]] %>%
   mutate(
     Locality = case_when(
@@ -22,18 +23,21 @@ data <- badger_load[[1]] %>%
     )
   )
 
+# Calculate percentage of births in each locality
 locality_count <- data %>%
   count(Locality) %>%
   mutate(
-    percentage = round(n/39972*100,1)
+    percentage = round(n/n()*100,1)
   ) %>%
   arrange(desc(percentage))
 
 maternity_wards <- readxl::read_excel("../data/general/maternity_wards.xlsx")
 
+# Define custom colour map
 plot_colour = "#7d4fff" 
 palette <- ggpubr::get_palette((c("white", plot_colour)), 20)
 
+# Plot map
 map <- plot_map(
   locality_count,
   value_header = "n",
@@ -45,15 +49,16 @@ map <- plot_map(
   credits_size = 0.8
 )
 
+# Add locations of the maternity wards as points
 map <- add_points(
   map,
   maternity_wards,
   size = 0.4,
-  color = "Maternity Ward"
+  shape = "Maternity Ward"
 ) +
   tmap::tm_layout(scale = 0.8)
-
-
+map
+# Save map as pdf 
 save_map(
   map,
   save_name = "../outputs/figures/locality-map.pdf",
