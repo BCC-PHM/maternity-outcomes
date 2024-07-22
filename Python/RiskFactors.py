@@ -5,14 +5,7 @@ Risk factor analysis - Who has highest rates of different risk factors?
 
 import seaborn as sns
 import pandas as pd
-#import EquiPy.Matrix as Mat
-
-import sys
-AF_path = r"../../../MiscCode/EquiPy/EquiPy"
-if not AF_path in sys.path:
-    sys.path.append(AF_path)
-import Matrix as Mat
-
+import EquiPy.Matrix as Mat
 
 import matplotlib.pyplot as plt
 import numpy as np

@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 """
-Plotting OR
+Plotting OR for HACA conference poster
+
+link: https://www.cityobservatory.birmingham.gov.uk/@birmingham-city-council/wider-determinants-of-birth-outcomes-in-birmingham-and-solihull
 """
 
 import pandas as pd
 import matplotlib.pyplot as plt
-#import numpy as np
 
 from matplotlib import rcParams
 rcParams['mathtext.fontset'] = 'stix'
@@ -13,7 +14,7 @@ rcParams['font.family'] = 'STIXGeneral'
 
 reg_path = '../data/BadgerNet/BadgerNet-reg-results-sorted.xlsx'
 
-bump_blue = "tab:blue"#(33/255, 194/255, 214/255)
+bump_blue = "tab:blue"
 
 fig = plt.figure(figsize = (10, 10))
 sheets = ["LBW", "Premature"]
@@ -105,4 +106,5 @@ for i, sheet in enumerate(sheets):
 
     ax.set_xlabel("Odds Ratio", size = 14)
 
-fig.savefig("../outputs/figures/reg_results_v3.pdf", bbox_inches = "tight", dpi = 300)
+# Save output
+fig.savefig("../outputs/figures/poster_reg_results.pdf", bbox_inches = "tight", dpi = 300)
