@@ -20,7 +20,11 @@ rcParams['font.family'] = 'STIXGeneral'
 fig_path = "../outputs/figures/inequality_matricies/"
 
 def conf_int(p, n):
-    return 1.96 * np.sqrt(p * (1-p) / n)
+    Z = 1.64485
+    lower = 100 * (p + Z**2/(2*n) - Z * np.sqrt((p*(1-p)/n) + Z**2/(4*n**2))) / (1 + Z**2/n)
+    upper =  100 * (p + Z**2/(2*n) + Z * np.sqrt((p*(1-p)/n) + Z**2/(4*n**2))) / (1 + Z**2/n)
+    
+    return (upper - lower)/2
 
 #%% Load data
 data = pd.read_parquet('../data/BadgerNet/BadgerNet-processed.parquet', 

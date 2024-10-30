@@ -97,7 +97,6 @@ time_diff = as.numeric(difftime(max(badger$`MthYr`), min(badger$`MthYr`)))
 
 The BadgerNet dataset comes from the Birmingham Local Maternity and Neonatal System (LMNS). This dataset contains `r nrow(badger)` unique births from `r date1` to `r date2` with a total timespan of `r time_diff` days. 
 
-
 ## Reference Group
 
 The risk ratios for each of the regressions calculated below are given relative 
@@ -106,7 +105,6 @@ to the following reference group.
 ```{r comment='', echo=FALSE, results='asis'}
  knitr::kable(ref, caption = "Reference group for logistic regression.")
 ```
-
 
 ## Variable Correlation Matrix
 
