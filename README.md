@@ -4,7 +4,7 @@ Analysis of the wider determinants of birth outcomes in Birmingham and Solihull 
 Partnership (BUMP) via BadgerNet. 
 
 Four outcomes were studied using logistic regression: 
--Two intermediate outcomes:
+- Two intermediate outcomes:
 	- premature birth
 	- low birth weight
 - Two final outcomes:
