@@ -3,6 +3,14 @@ library(ggplot2)
 
 FT_data <- read_excel("../../data/general/FingerTipsData.xlsx") 
 
+FT_data$IndicatorName = factor(
+  FT_data$IndicatorName, 
+  levels = c("Low birth weight of term babies",
+             "Premature births (less than 37 weeks gestation)",
+             "Stillbirth rate",
+             "Neonatal mortality rate",
+             "Infant mortality rate"))
+
 BSol_data <- FT_data %>%
   mutate(
     AreaName = case_when(
@@ -22,6 +30,8 @@ BSol_data <- FT_data %>%
     LowerCI95 = 1000 * Count * (1 - 1/(9*Count) - Z/3 * sqrt(1/a_prime))**3/Denominator,
     UpperCI95 = 1000 * a_prime * (1 - 1/(9*a_prime) + Z/3 * sqrt(1/a_prime))**3/Denominator
   )
+
+
 
 LA_data <- FT_data %>%
   filter(AreaName %in% c("Birmingham", "Solihull"))%>%
@@ -56,4 +66,4 @@ ggplot(BSol_data, aes(x = TimeperiodSortable, y = Value, color = AreaName)) +
     )
 
 ggsave("../../outputs/figures/FT_plots.jpeg", 
-       width = 7, height = 8, dpi = 300)
+       width = 7, height = 7, dpi = 300)
