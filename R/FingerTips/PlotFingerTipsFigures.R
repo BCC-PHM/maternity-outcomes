@@ -63,16 +63,17 @@ ggplot(BSol_data, aes(x = TimeperiodSortable, y = Value, color = AreaName)) +
     strip.background = element_rect(fill="white"),
     text=element_text(size=14, family="serif")) +
   scale_x_continuous(
-    breaks = c(20000000, 20050000, 20100000, 20150000, 20200000),
-    label = c(2000, 2005, 2010, 2015, 2020 ),
-    limits = c(20000000, 20230000)
+    breaks = c(20000000, 20050000, 20100000, 20150000, 20200000, 20250000),
+    label = c(2000, 2005, 2010, 2015, 2020, 2025 ),
+    limits = c(20000000, 20250000),
+    expand = c(0,0)
     )
 
-ggsave("../../outputs/figures/FT_plots.jpeg", 
+ggsave("../../outputs/figures/FT_plots.pdf", 
        width = 7, height = 7, dpi = 300)
 
-# Print latest numbers
-latest <- BSol_data %>%
+# Print latest BSol and England numbers
+latest_bsol_eng <- BSol_data %>%
   group_by(IndicatorName) %>%
   mutate(
     MaxDate = max(TimeperiodSortable)
@@ -81,12 +82,33 @@ latest <- BSol_data %>%
     TimeperiodSortable == MaxDate
   ) %>%
   mutate(
-    TimeperiodSortable/10000
+    TimeperiodSortable = TimeperiodSortable/1e4
   ) %>%
   arrange(
     IndicatorName
   ) %>%
   select(
-    IndicatorName, AreaName, Value, LowerCI95, UpperCI95
+    IndicatorName,TimeperiodSortable, AreaName, Value, LowerCI95, UpperCI95
   )
-latest
+latest_bsol_eng
+
+# Print latest Birmingham and Solihull numbers
+latest_brum_soli <- LA_data %>%
+  group_by(IndicatorName) %>%
+  mutate(
+    MaxDate = max(TimeperiodSortable)
+  ) %>%
+  filter(
+    TimeperiodSortable == MaxDate
+  ) %>%
+  mutate(
+    TimeperiodSortable = TimeperiodSortable/1e4
+  ) %>%
+  arrange(
+    IndicatorName
+  ) %>%
+  select(
+    IndicatorName,#TimeperiodSortable, 
+    AreaName, Value
+  )
+latest_brum_soli
