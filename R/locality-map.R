@@ -62,7 +62,7 @@ map
 # Save map as pdf 
 save_map(
   map,
-  save_name = "../outputs/figures/locality-map.jpeg",
+  save_name = "../outputs/figures/locality-map.pdf",
   width = 5,
   height = 4.5
   )
