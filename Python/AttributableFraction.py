@@ -11,6 +11,9 @@ rcParams['font.family'] = 'STIXGeneral'
 
 from EquiPy import AF
 
+import random
+random.seed(1)
+
 data = pd.read_parquet('../data/BadgerNet/BadgerNet-processed.parquet', 
                         engine='pyarrow')
 
@@ -28,11 +31,11 @@ titles = ["Premature Birth", "Low Birth Weight"]
 
 for i, obs in enumerate(["Premature", "LowBirthWeight"]):
     out_count = AF.outcome_count(data_smaller, obs)
-    afracs = AF.calc_AF(data_smaller, obs, n = 10)
+    afracs = AF.calc_AF(data_smaller, obs, n = 1000)
     afrac_errs = AF.calc_errors(afracs)
     fig_i = AF.plot_AF(afrac_errs, out_count, error_range = 100,
                        insuff_text_size = 14, tick_size = 16)
     fig_i.axes[0].set_title(titles[i], size = 18)
     fig_i.axes[0].set_ylabel("IMD Quintile", size = 16)
-    fig_i.savefig("../outputs/figures/attrib_frac/{}_attrib_frac.pdf".format(obs),
+    fig_i.savefig("../outputs/figures/attrib_frac/{}_attrib_frac.jpeg".format(obs),
                 bbox_inches = "tight", dpi = 300)   

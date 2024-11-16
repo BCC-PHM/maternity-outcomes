@@ -125,6 +125,7 @@ for i, var in enumerate(dep_vars):
                        perc_pivot,
                        title = var,
                        ttest = True,
+                       CI_method = "Wilson",
                        letter=letter)
 
     save_name = fig_path + "IneqMat-{}-{}.pdf".format(fig_num, letter)
