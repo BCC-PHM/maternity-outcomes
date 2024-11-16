@@ -434,7 +434,7 @@ tbl_output_intermediate <-
   as_gt()
 
 tbl_output_intermediate %>%
-  gt::gtsave(filename = "../../../outputs/BN_int_reg_table.tex")
+  gt::gtsave(filename = "../outputs/BN_int_reg_table.tex")
 
 # Print out table
 tbl_output_intermediate
@@ -451,7 +451,7 @@ tbl_output_final <-
   as_gt()
 
 tbl_output_final %>%
-  gt::gtsave(filename = "../../../outputs/BN_reg_table.tex")
+  gt::gtsave(filename = "../outputs/BN_reg_table.tex")
 
 # Print out table
 tbl_output_final
@@ -743,9 +743,10 @@ both_big <- cowplot::plot_grid(
 both_big
 
 ggplot2::ggsave(both_big, 
-                filename = "../outputs/figures/regression/reg_lbw_prem.pdf", 
+                filename = "../outputs/figures/regression/reg_lbw_prem.jpeg", 
                 width = 12,
-                height = 14)
+                height = 14,
+                dpi = 300)
 ```
 
 ```{r combine_forest_small}
@@ -766,7 +767,8 @@ both_smalls <- cowplot::plot_grid(
 both_smalls
 
 ggplot2::ggsave(both_smalls, 
-                filename = "../outputs/figures/regression/reg_sb_nd.pdf", 
+                filename = "../outputs/figures/regression/reg_sb_nd.jpeg", 
                 width = 12,
-                height = 7.8)
+                height = 7.8,
+                dpi = 300)
 ```

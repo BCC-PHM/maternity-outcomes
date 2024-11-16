@@ -56,12 +56,13 @@ map <- add_points(
   size = 0.4,
   shape = "Maternity Ward"
 ) +
-  tmap::tm_layout(scale = 0.8)
+  tmap::tm_layout(scale = 0.8, fontfamily = "serif")
+
 map
 # Save map as pdf 
 save_map(
   map,
-  save_name = "../outputs/figures/locality-map.pdf",
-  width = 6,
-  height = 5
+  save_name = "../outputs/figures/locality-map.jpeg",
+  width = 5,
+  height = 4.5
   )
