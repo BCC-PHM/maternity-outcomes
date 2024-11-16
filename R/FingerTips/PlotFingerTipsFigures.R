@@ -1,4 +1,5 @@
 library(readxl)
+library(dplyr)
 library(ggplot2)
 
 FT_data <- read_excel("../../data/general/FingerTipsData.xlsx") 
@@ -58,12 +59,34 @@ ggplot(BSol_data, aes(x = TimeperiodSortable, y = Value, color = AreaName)) +
     fill = "",
     color = ""
   )+
-  theme(strip.background = element_rect(fill="white")) +
+  theme(
+    strip.background = element_rect(fill="white"),
+    text=element_text(size=14, family="serif")) +
   scale_x_continuous(
     breaks = c(20000000, 20050000, 20100000, 20150000, 20200000),
-    label = c(2000, 2005, 2010, 2015, 2020),
-    limits = c(20000000, 20200000)
+    label = c(2000, 2005, 2010, 2015, 2020 ),
+    limits = c(20000000, 20230000)
     )
 
 ggsave("../../outputs/figures/FT_plots.jpeg", 
        width = 7, height = 7, dpi = 300)
+
+# Print latest numbers
+latest <- BSol_data %>%
+  group_by(IndicatorName) %>%
+  mutate(
+    MaxDate = max(TimeperiodSortable)
+  ) %>%
+  filter(
+    TimeperiodSortable == MaxDate
+  ) %>%
+  mutate(
+    TimeperiodSortable/10000
+  ) %>%
+  arrange(
+    IndicatorName
+  ) %>%
+  select(
+    IndicatorName, AreaName, Value, LowerCI95, UpperCI95
+  )
+latest
