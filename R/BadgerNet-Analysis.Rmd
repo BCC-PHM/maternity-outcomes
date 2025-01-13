@@ -17,20 +17,18 @@ knitr::opts_chunk$set(echo = TRUE)
 
 imp_thresh = 3
 
-library(writexl)
 library(dplyr)
+library(writexl)
 library(openxlsx)
 library(stringr)
 library(ggplot2)
 library(gtsummary)
-
-source("~/Main work/MiscCode/r-regression-tools/r-regression-tools.R")
-setwd("~/Main work/Maternity outcomes/maternity-outcomes/R")
+source("../R/config.R")
 
 # Load data
 badger_load <- load_with_ref(
-  "../data/BadgerNet/BadgerNet-processed.parquet",
-  seperate_ref_sheet = "../data/BadgerNet/BadgerNet-RefGroups.xlsx",
+  file.path(bn_data_path,"BadgerNet-processed.parquet"),
+  seperate_ref_sheet = file.path(bn_data_path,"BadgerNet-RefGroups.xlsx"),
   ref_sheet = "reference",
   add_colon = FALSE,
   return_ref = TRUE
@@ -593,7 +591,7 @@ dataset_names <- list('LBW' = lbw_exp,
                       'NeonatalDeath' = nd_exp)
 
 openxlsx::write.xlsx(dataset_names, 
-                     file = '../data/BadgerNet/BadgerNet-reg-results.xlsx') 
+                     file = '../data/outputs/BadgerNet-reg-results.xlsx') 
 ```
 
 

@@ -3,9 +3,14 @@
 Risk factor analysis - Who has highest rates of different risk factors?
 """
 
+import config
+
 import seaborn as sns
 import pandas as pd
-import EquiPy.Matrix as Mat
+#import EquiPy.Matrix as Mat
+
+from EquiPy import Matrix as Mat
+
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -21,13 +26,13 @@ fig_path = "../outputs/figures/inequality_matricies/"
 
 def conf_int(p, n):
     Z = 1.64485
-    lower = 100 * (p + Z**2/(2*n) - Z * np.sqrt((p*(1-p)/n) + Z**2/(4*n**2))) / (1 + Z**2/n)
-    upper =  100 * (p + Z**2/(2*n) + Z * np.sqrt((p*(1-p)/n) + Z**2/(4*n**2))) / (1 + Z**2/n)
+    lower = (p + Z**2/(2*n) - Z * np.sqrt((p*(1-p)/n) + Z**2/(4*n**2))) / (1 + Z**2/n)
+    upper =  (p + Z**2/(2*n) + Z * np.sqrt((p*(1-p)/n) + Z**2/(4*n**2))) / (1 + Z**2/n)
     
     return (upper - lower)/2
 
 #%% Load data
-data = pd.read_parquet('../data/BadgerNet/BadgerNet-processed.parquet', 
+data = pd.read_parquet(config.bn_data_path + '/BadgerNet-processed.parquet', 
                         engine='pyarrow')
 
 data["Ethnicity Group"] = data["Ethnicity Group"].replace('Middle Eastern', 'Middle\nEastern')
@@ -48,10 +53,12 @@ data["Mental Health\nIssue(s)"] = data["MentalHealth"] == "Yes"
 data["Obesity"] = data["BMI>35"] == "Yes" 
 data["Gestational Diabetes"] = data["Gestational_Diabetes"] == "Yes" 
 data["Folic Acid Taken"] = data["Folic Acid Taken"] == "Yes"
-data["Early Booking"] = data["Early booking"] == "Yes" 
+#data["Early Booking"] = data["Early booking"] == "Yes" 
 data["Late Booking"] = data["Late booking"] == "Yes" 
 data["Consanguineous\nUnion"] = data["Consanguineous_Relationship"] == "Yes"
 data["> 4 Missed Appointments"] = data["> 4 missed apts"] == "Yes"
+data["Domestic Abuse"] = data["DomesticAbuse"] == "Yes"
+data["FGM"] = data["FGM"] == "Yes"
 
 dep_vars = [
     "Financial/Housing\nIssue(s)",
@@ -67,10 +74,12 @@ dep_vars = [
     "Obesity",
     "Gestational Diabetes",
     "Folic Acid Taken",
-    "Early Booking",
+#    "Early Booking",
     "Late Booking",
     "> 4 Missed Appointments",
     "Consanguineous\nUnion",
+    "Domestic Abuse",
+    "FGM"
     ]
 
 #%% Create all inequality matricies

@@ -2,7 +2,7 @@
 Calculation of the fraction of premature birth and low birth weight
 attributable to ethnicity and socioeconomic deprivation (IMD)
 """
-
+import config
 import pandas as pd
 
 from matplotlib import rcParams
@@ -14,7 +14,7 @@ from EquiPy import AF
 import random
 random.seed(1)
 
-data = pd.read_parquet('../data/BadgerNet/BadgerNet-processed.parquet', 
+data = pd.read_parquet(config.bn_data_path + '/BadgerNet-processed.parquet', 
                         engine='pyarrow')
 
 #data.loc[data.loc[:,"Ethnicity"] == "Middle_Eastern","Ethnicity"] = "Middle Eastern"

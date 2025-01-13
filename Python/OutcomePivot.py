@@ -2,12 +2,13 @@
 """
 Outcome pivot table
 """
+import config
 import pandas as pd
 import numpy as np
 import EquiPy.Matrix as Mat
 
 #%% Load data
-data = pd.read_parquet('../data/BadgerNet/BadgerNet-processed.parquet', 
+data = pd.read_parquet(config.bn_data_path + 'BadgerNet-processed.parquet', 
                         engine='pyarrow')
 
 data["Intermediate Outcome"] = np.where(data["LowBirthWeight"], "LBW",

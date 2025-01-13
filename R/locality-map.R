@@ -1,13 +1,11 @@
 # BadgerNet BSol locality map
-
 library(BSol.mapR)
-
-source("~/Main work/MiscCode/r-regression-tools/r-regression-tools.R")
+source("R/config.R")
 
 # Load BadgerNet data
 badger_load <- load_with_ref(
-  "../data/BadgerNet/BadgerNet-processed.parquet",
-  seperate_ref_sheet = "../data/BadgerNet/BadgerNet-RefGroups.xlsx",
+  file.path(bn_data_path,"BadgerNet-processed.parquet"),
+  seperate_ref_sheet = file.path(bn_data_path,"BadgerNet-RefGroups.xlsx"),
   ref_sheet = "reference",
   add_colon = FALSE,
   return_ref = TRUE
@@ -31,7 +29,7 @@ locality_count <- data %>%
   ) %>%
   arrange(desc(percentage))
 
-maternity_wards <- readxl::read_excel("../data/general/maternity_wards.xlsx")
+maternity_wards <- readxl::read_excel("data/general/maternity_wards.xlsx")
 
 # Define custom colour map
 plot_colour = "#7d4fff" 
@@ -62,7 +60,7 @@ map
 # Save map as pdf 
 save_map(
   map,
-  save_name = "../outputs/figures/locality-map.pdf",
+  save_name = "outputs/figures/locality-map.pdf",
   width = 5,
   height = 4.5
   )

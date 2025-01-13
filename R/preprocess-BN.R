@@ -1,18 +1,22 @@
 # BadgerNet Preprocessing
-
+source("R/config.R")
 library(writexl)
 library(dplyr)
 
 # Load data
-badger1 <- readxl::read_excel("../data/BadgerNet/raw/BadgerNet_Oct20_to_Oct22.xlsx",
-                      sheet = "Births")
-badger2 <- readxl::read_excel("../data/BadgerNet/raw/BadgerNet_May21_to_May23.xlsx",
-                      sheet = "Births") %>%
+badger1 <- readxl::read_excel(
+  paste0(bn_data_path,"/raw/BadgerNet_Oct20_to_Oct22.xlsx"),
+  sheet = "Births"
+  )
+badger2 <- readxl::read_excel(
+  paste0(bn_data_path,"/raw/BadgerNet_May21_to_May23.xlsx"),
+  sheet = "Births"
+  ) %>%
   # filter for only births that aren't in the first data set
   filter(MthYr > max(badger1$MthYr))
 
 # Combine separate files
-badger <- badger1 %>%
+badger_all <- badger1 %>%
   select(colnames(badger2)) %>%
   rbind(badger2) %>%
   mutate(
@@ -206,9 +210,11 @@ badger <- badger1 %>%
 
   )
 
-badger <- badger %>%
+badger <- badger_all %>%
   left_join(
-    readxl::read_excel("../../data/BadgerNet/BadgerNet-ethnicities.xlsx") %>%
+    readxl::read_excel(
+      paste0(bn_data_path,"/BadgerNet-ethnicities.xlsx")
+             ) %>%
       select(-c("n"))
   )
 
@@ -265,6 +271,6 @@ empty_badger <- badger %>%
 # Save as parquet file 
 arrow::write_parquet(
   badger,
-  sink = "../data/BadgerNet/BadgerNet-processed.parquet"
+  sink = paste0(bn_data_path,"/BadgerNet-processed.parquet")
   )
 
