@@ -128,12 +128,14 @@ for i, var in enumerate(dep_vars):
     
     print(eth_av)
     print()
-    print(imd_av)   
+    print(imd_av)
     
     fig = Mat.inequality_map(count_pivot, 
                        perc_pivot,
                        title = var,
                        ttest = True,
+                       supp_label="<5",
+                       supp_thresh=5,
                        CI_method = "Wilson",
                        letter=letter)
 
