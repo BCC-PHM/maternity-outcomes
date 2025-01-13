@@ -271,11 +271,6 @@ print(lbw_formula)
 
 # run logistic regression
 model_lbw <- glm(lbw_formula, family = binomial, data=badger)
-
-# find most important variables
-varImp_lbw <- var_imp(model_lbw)
-head(varImp_lbw, 10)
-
 ```
 
 
@@ -300,10 +295,6 @@ print(prem_formula)
 
 # run logistic regression
 model_prem <- glm(prem_formula, family = binomial, data=badger)
-
-# find most important variables
-varImp_prem <- var_imp(model_prem)
-head(varImp_prem, 10)
 ```
 
 ```{r prem_vif, echo=FALSE}
@@ -327,10 +318,6 @@ print(sb_formula)
 
 # run logistic regression
 model_sb <- glm(sb_formula, family = binomial, data=badger)
-
-# find most important variables
-varImp_sb <- var_imp(model_sb)
-head(varImp_sb, 10)
 ```
 
 ```{r sb_vif, echo=FALSE}
@@ -354,10 +341,6 @@ print(nd_formula)
 
 # run logistic regression
 model_nd <- glm(nd_formula, family = binomial, data=badger)
-
-# find most important variables
-varImp_nd <- var_imp(model_nd)
-head(varImp_nd, 10)
 ```
 
 ```{r nd_vif, echo=FALSE}
@@ -418,44 +401,7 @@ ggsave("../outputs/figures/vif.pdf", vif_plot,
 
 ```
 
-## Basic regression final results
-```{r basic_reg_vis, echo=FALSE, warning=FALSE}
-# merge tables
-tbl_output_intermediate <-
-  tbl_merge(
-    tbls = list(
-      tbl_regression(model_lbw, exponentiate = TRUE),
-      tbl_regression(model_prem, exponentiate = TRUE)
-      ),
-    tab_spanner = c("**Low birth weight**", "**Premature Birth**")
-  ) %>%
-  as_gt()
 
-tbl_output_intermediate %>%
-  gt::gtsave(filename = "../outputs/BN_int_reg_table.tex")
-
-# Print out table
-tbl_output_intermediate
-
-# merge tables
-tbl_output_final <-
-  tbl_merge(
-    tbls = list(
-      tbl_regression(model_sb, exponentiate = TRUE),
-      tbl_regression(model_nd, exponentiate = TRUE)
-      ),
-    tab_spanner = c("**Stillbirth**", "Neonatal Death")
-  ) %>%
-  as_gt()
-
-tbl_output_final %>%
-  gt::gtsave(filename = "../outputs/BN_reg_table.tex")
-
-# Print out table
-tbl_output_final
-```
-
-We see that the result is not statistically significant for the following variables: AgeLessThan20, AlcoholAbuse, LD, DiffUndEnglish, Unsupported, Homeless, Citizenship, InterpreterRequired, FGM. Therefore, we remove these variables from our model.
 
 ```{r add_marginal, include=FALSE}
 
@@ -591,7 +537,7 @@ dataset_names <- list('LBW' = lbw_exp,
                       'NeonatalDeath' = nd_exp)
 
 openxlsx::write.xlsx(dataset_names, 
-                     file = '../data/outputs/BadgerNet-reg-results.xlsx') 
+                     file = '../data/BadgerNet-reg-results.xlsx') 
 ```
 
 
